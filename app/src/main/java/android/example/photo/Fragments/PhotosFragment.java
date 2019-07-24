@@ -1,12 +1,15 @@
 package android.example.photo.Fragments;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.example.photo.ApplicationActivity;
+import android.example.photo.FullscreenPictureActivity;
 import android.example.photo.R;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -53,6 +56,10 @@ public class PhotosFragment extends Fragment {
                     wv.getSettings().setUseWideViewPort(true);
                     wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
                     wv.setScrollbarFadingEnabled(false);
+                    //wv.setOnClickListener(onClickPicture);
+                    //wv.setOnTouchListener(onClickPicture);
+                    wv.setOnLongClickListener(onClickPicture);//TODO: doubleclick?
+                    wv.setTag(c.getInt(c.getColumnIndex("id")));
                     cl.addView(wv);
                     ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) wv.getLayoutParams();
                     p.bottomMargin = 30;
@@ -61,17 +68,37 @@ public class PhotosFragment extends Fragment {
                     btn.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
                     btn.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_favorite));
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLike));
+                        btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight));
                     }
+                    btn.setOnClickListener(btnLikeListener);
                     //scrollLayout.addView(btn);
                     cl.addView(btn);
                     scrollLayout.addView(cl);
-
-
                 } while (c.moveToNext());
-
         }
+    }
+    View.OnClickListener btnLikeListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                view.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeDark));
+                //TODO: добавлять фото в базу данных фейворит
+                //TODO: возможность убирать лайк (или сделать ее только в большом фото)
+            }
+        }
+    };
+    View.OnLongClickListener onClickPicture = new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View view) {
+            loadIntent((WebView)view);
+            return false;
+        }
+    };
 
-
+    private void loadIntent(WebView wv) {
+        Intent intent = new Intent(getActivity(), FullscreenPictureActivity.class);
+        intent.putExtra("current_url", wv.getUrl());
+        intent.putExtra("id", Integer.parseInt(wv.getTag().toString()));
+        startActivity(intent);
     }
 }

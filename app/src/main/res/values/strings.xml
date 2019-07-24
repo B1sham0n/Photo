@@ -4,4 +4,8 @@
     <string name="title_favorites">Избранное</string>
     <string name="title_photos">Фото</string>
     <string name="title_info">Инфо</string>
+
+    <string name="title_activity_fullscreen_picture">FullscreenPictureActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>
