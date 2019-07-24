@@ -17,8 +17,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,14 +39,17 @@ public class FullscreenPictureActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen_picture);
-        WebView wv = findViewById(R.id.wvPicture);
+        //TODO: сделать в ImageView через Picasso
+
+        //WebView wv = findViewById(R.id.wvPicture);
         TextView tv = findViewById(R.id.username);
+        /*
         wv.setInitialScale(1);
         wv.getSettings().setJavaScriptEnabled(true);
         wv.getSettings().setLoadWithOverviewMode(true);
         wv.getSettings().setUseWideViewPort(true);
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        wv.setScrollbarFadingEnabled(false);
+        wv.setScrollbarFadingEnabled(false);*/
         //wv.loadUrl(getIntent().getStringExtra("current_url"));
         ApplicationActivity.DBHelper dbHelper = new ApplicationActivity.DBHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -78,9 +84,11 @@ public class FullscreenPictureActivity extends AppCompatActivity {
                     System.out.println("Code: " + response.code());
                     return;
                 }
-                WebView wv = findViewById(R.id.wvPicture);
-                wv.loadUrl(response.body().getUrls().getFull());
-                System.out.println("i am woooorikng! " + wv.getUrl());
+                //WebView wv = findViewById(R.id.wvPicture);
+                //wv.loadUrl(response.body().getUrls().getFull());
+                //System.out.println("i am woooorikng! " + wv.getUrl());
+                ImageView iv = findViewById(R.id.wvPicture);
+                Picasso.get().load(response.body().getUrls().getSmall()).placeholder(R.drawable.ic_photo).error(R.drawable.ic_info).into(iv);
                 TextView tv = findViewById(R.id.username);
                 tv.setText("created: " + response.body().getCreated_at());
             }

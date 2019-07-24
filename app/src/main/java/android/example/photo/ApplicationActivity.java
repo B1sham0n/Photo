@@ -103,7 +103,7 @@ public class ApplicationActivity extends AppCompatActivity {
                 }
                 for(int i = 0; i < 50; i++){
                     //System.out.println("Its" + response.body().get(i).getCreated_at());
-                    setUrlAndIdOnDB(response.body().get(i).getUrls().getFull(), response.body().get(i).getId(), response.body().get(i).getCreated_at());
+                    setUrlAndIdOnDB(response.body().get(i).getUrls().getRegular(), response.body().get(i).getId(), response.body().get(i).getCreated_at());
                 }
                 //setUrlOnDB(response.body().getUrls().getFull());
             }

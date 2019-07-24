@@ -21,7 +21,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Использованные библиотеки: \n Retrofit, converter-gson"
+        android:text="Использованные библиотеки: \n Retrofit, converter-gson, picasso"
         android:textSize="20sp"
         android:padding="5dp"
         android:gravity="center"
