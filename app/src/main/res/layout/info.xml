@@ -1,35 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:layout_height="match_parent">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Разработчик: Ридченко Валерия"
         android:textSize="20sp"
-        android:gravity="center"/>
+        android:padding="5dp"
+        android:gravity="center"
+        android:layout_weight="1"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Контакты: valeriya.ridchenko@mail.ru"
         android:textSize="20sp"
-        android:gravity="center"/>
+        android:padding="5dp"
+        android:gravity="center"
+        android:layout_weight="1"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Использованные библиотеки: \n Retrofit, converter-gson"
         android:textSize="20sp"
-        android:gravity="center"/>
+        android:padding="5dp"
+        android:gravity="center"
+        android:layout_weight="1"/>
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="1dp">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginTop="100dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:src="@drawable/splash_logo"/>
+            android:layout_gravity="center"
+            android:src="@drawable/splash_logo"
+            android:layout_weight="1"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="PhotoApp"
+            android:textSize="16sp"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:gravity="center"/>
     </LinearLayout>
 
 </LinearLayout>
