@@ -1,10 +1,7 @@
-package android.example.photo;
+package android.example.photo.Retrofit;
 
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
 
 public class Post {
     //List<PostDetail> urls;

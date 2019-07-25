@@ -1,24 +1,13 @@
 package android.example.photo;
 
-import android.annotation.SuppressLint;
-
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
+import android.example.photo.Retrofit.JsonPlaceHolderApi;
+import android.example.photo.Retrofit.Post;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.WebView;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -39,32 +28,20 @@ public class FullscreenPictureActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen_picture);
-        //TODO: сделать в ImageView через Picasso
 
-        //WebView wv = findViewById(R.id.wvPicture);
         TextView tv = findViewById(R.id.username);
-        /*
-        wv.setInitialScale(1);
-        wv.getSettings().setJavaScriptEnabled(true);
-        wv.getSettings().setLoadWithOverviewMode(true);
-        wv.getSettings().setUseWideViewPort(true);
-        wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        wv.setScrollbarFadingEnabled(false);*/
-        //wv.loadUrl(getIntent().getStringExtra("current_url"));
         ApplicationActivity.DBHelper dbHelper = new ApplicationActivity.DBHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor c = db.query("urlsTable", null, null, null,
                 null, null, null);
         Integer i = 0;
         Integer id = getIntent().getIntExtra("id", 0);
-        id -=1;
+        id -=1;//т.к. в БД счет с 1, а не с 0
         String photo_id = "";
         if (c.moveToFirst()) {
             do {
                 if(i == id){
-                    String created = c.getString(c.getColumnIndex("created"));
                     photo_id = c.getString(c.getColumnIndex("photo_id"));
-                    tv.setText("created: " + created);
                     break;
                 }
                 i++;
@@ -84,11 +61,13 @@ public class FullscreenPictureActivity extends AppCompatActivity {
                     System.out.println("Code: " + response.code());
                     return;
                 }
-                //WebView wv = findViewById(R.id.wvPicture);
-                //wv.loadUrl(response.body().getUrls().getFull());
-                //System.out.println("i am woooorikng! " + wv.getUrl());
                 ImageView iv = findViewById(R.id.wvPicture);
-                Picasso.get().load(response.body().getUrls().getSmall()).placeholder(R.drawable.ic_photo).error(R.drawable.ic_info).into(iv);
+                Picasso
+                        .get()
+                        .load(response.body().getUrls().getRegular())
+                        .placeholder(R.drawable.ic_photo)
+                        .error(R.drawable.ic_info)
+                        .into(iv);
                 TextView tv = findViewById(R.id.username);
                 tv.setText("created: " + response.body().getCreated_at());
             }

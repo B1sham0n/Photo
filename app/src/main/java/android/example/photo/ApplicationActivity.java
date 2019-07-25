@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.example.photo.Fragments.FavoritesFragment;
 import android.example.photo.Fragments.InfoFragment;
 import android.example.photo.Fragments.PhotosFragment;
+import android.example.photo.Retrofit.JsonPlaceHolderApi;
+import android.example.photo.Retrofit.Post;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -16,15 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.webkit.WebView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -78,6 +74,7 @@ public class ApplicationActivity extends AppCompatActivity {
         final String[] url = {null};
 
         dbHelper = new DBHelper(this);
+        dbHelper.setNameTable("urlsTable");
         deleteDB();
         getRandomPhotoUrl();
         readDB();
@@ -168,6 +165,11 @@ public class ApplicationActivity extends AppCompatActivity {
     }
     public static class DBHelper extends SQLiteOpenHelper {
         //вроде был private not static
+        String nameTable = "urlsTable";
+        public void setNameTable(String nameTable) {
+            this.nameTable = nameTable;
+        }
+
         public DBHelper(Context context) {
             // конструктор суперкласса
             super(context, "photoDB", null, 1);
@@ -176,7 +178,7 @@ public class ApplicationActivity extends AppCompatActivity {
         public void onCreate(SQLiteDatabase db) {
             //Log.d(LOG_TAG, "--- onCreate database ---");
             // создаем таблицу с полями
-            db.execSQL("create table urlsTable ("
+            db.execSQL("create table " + nameTable + " ("
                     + "id integer primary key autoincrement,"
                     + "url text,"
                     + "photo_id text,"

@@ -1,4 +1,4 @@
-package android.example.photo;
+package android.example.photo.Retrofit;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

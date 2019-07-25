@@ -1,11 +1,12 @@
-package android.example.photo;
+package android.example.photo.Retrofit;
+
+import android.example.photo.Retrofit.Post;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 public interface JsonPlaceHolderApi {
     //String SECRET_ACCESS_KEY = "7d770b5724deac228aadb9b9159ebe575c6c9db5dd3abb14a38b01a96e2523ac";
