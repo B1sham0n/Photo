@@ -1,5 +1,6 @@
 package android.example.photo;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -12,6 +13,7 @@ import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
 import android.os.Bundle;
 
+import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +34,7 @@ public class ApplicationActivity extends AppCompatActivity {
 
     //DBHelper dbHelper;
     SQLiteDatabase db;
-
+    private Integer currentButton = -1;
     private boolean loadFragment(Fragment fragment){
         if(fragment != null){
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commit();
@@ -41,23 +43,30 @@ public class ApplicationActivity extends AppCompatActivity {
         }
         return false;
     }
-
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
+        @SuppressLint("RestrictedApi")
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             Fragment fragment = null;
             switch (item.getItemId()) {
                 case R.id.navigation_favorites:
-                    fragment = new FavoritesFragment();
+                    if(currentButton != R.id.navigation_favorites){
+                        fragment = new FavoritesFragment();
+                        currentButton = R.id.navigation_favorites;
+                    }
                     break;
                 case R.id.navigation_photos:
-
-                    fragment = new PhotosFragment();
+                    if(currentButton != R.id.navigation_photos){
+                        fragment = new PhotosFragment();
+                        currentButton = R.id.navigation_photos;
+                    }
                     break;
                 case R.id.navigation_info:
-                    fragment = new InfoFragment();
+                    if(currentButton != R.id.navigation_info){
+                        fragment = new InfoFragment();
+                        currentButton = R.id.navigation_info;
+                    }
                     break;
             }
             return loadFragment(fragment);

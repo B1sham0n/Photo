@@ -3,6 +3,7 @@ package android.example.photo.Fragments;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -81,7 +82,10 @@ public class PhotosFragment extends Fragment {
                     btn.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_favorite));
                     btn.setTag(c.getInt(c.getColumnIndex("id")));
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight));
+                        if(compareWithFavorites(c.getString(c.getColumnIndex("photo_id"))))
+                            btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeDark));
+                        else
+                            btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight));
                     }
                     btn.setOnClickListener(btnLikeListener);
                     //scrollLayout.addView(btn);
@@ -93,41 +97,44 @@ public class PhotosFragment extends Fragment {
     View.OnClickListener btnLikeListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                view.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeDark));
+            ColorStateList colorStateList = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                colorStateList = view.getBackgroundTintList();
+                if (colorStateList == ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight)) {
+                    view.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeDark));
+                    view.setEnabled(false);
+                    DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
+                    dbHelperFav.setNameTable("favoritesTable");
+                    ContentValues cv = new ContentValues();
+                    SQLiteDatabase db2 = dbHelperFav.getWritableDatabase();
 
-                DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
-                dbHelperFav.setNameTable("favoritesTable");
-                ContentValues cv = new ContentValues();
-                SQLiteDatabase db2 = dbHelperFav.getWritableDatabase();
+                    Integer id = Integer.parseInt(view.getTag().toString());
+                    id -= 1;
+                    System.out.println("id = " + id);
+                    Integer i = 0;
+                    String url = "https://images.unsplash.com/photo-1556228453-6ecff5553887?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max&ixid=eyJhcHBfaWQiOjgyODgzfQ",
+                            photo_id = "nophotoid",
+                            created = "22-02-2019";
 
-                Integer id = Integer.parseInt(view.getTag().toString());
-                id -= 1;
-                System.out.println("id = " + id);
-                Integer i = 0;
-                String url = "https://images.unsplash.com/photo-1556228453-6ecff5553887?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max&ixid=eyJhcHBfaWQiOjgyODgzfQ",
-                        photo_id = "nophotoid",
-                        created = "22-02-2019";
-
-                db = dbHelper.getWritableDatabase();
-                Cursor c = db.query("urlsTable", null, null, null,
-                        null, null, null);
-                if (c.moveToFirst()) {
-                    do {
-                       if (i == id){
-                           url = c.getString(c.getColumnIndex("url"));
-                           photo_id = c.getString(c.getColumnIndex("photo_id"));
-                           created = c.getString(c.getColumnIndex("created"));
-                       }
-                       i++;
-                    } while (c.moveToNext());
+                    db = dbHelper.getWritableDatabase();
+                    Cursor c = db.query("urlsTable", null, null, null,
+                            null, null, null);
+                    if (c.moveToFirst()) {
+                        do {
+                            if (i == id) {
+                                url = c.getString(c.getColumnIndex("url"));
+                                photo_id = c.getString(c.getColumnIndex("photo_id"));
+                                created = c.getString(c.getColumnIndex("created"));
+                            }
+                            i++;
+                        } while (c.moveToNext());
+                    }
+                    cv.put("url", url);
+                    cv.put("photo_id", photo_id);
+                    cv.put("created", created);
+                    db2.insert("favoritesTable", null, cv);
+                    //TODO: возможность убирать лайк (или сделать ее только в большом фото)
                 }
-                cv.put("url", url);
-                cv.put("photo_id", photo_id);
-                cv.put("created", created);
-                db2.insert("favoritesTable", null, cv);
-                //TODO: добавлять фото в базу данных фейворит
-                //TODO: возможность убирать лайк (или сделать ее только в большом фото)
             }
         }
     };
@@ -138,6 +145,20 @@ public class PhotosFragment extends Fragment {
             return false;
         }
     };
+    private Boolean compareWithFavorites(String photo_id){
+        DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
+        SQLiteDatabase db = dbHelperFav.getWritableDatabase();
+        Cursor c = db.query("favoritesTable", null, null, null,
+                null, null, null);
+        if(c.moveToFirst()){
+            do {
+                if(c.getString(c.getColumnIndex("photo_id")).equals(photo_id)){
+                    return true;
+                }
+            }while(c.moveToNext());
+        }
+        return false;
+    }
     private void deleteDB(){
         DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
         db = dbHelperFav.getWritableDatabase();
@@ -147,6 +168,7 @@ public class PhotosFragment extends Fragment {
     private void loadIntent(ImageView iv) {
         Intent intent = new Intent(getActivity(), FullscreenPictureActivity.class);
         intent.putExtra("id", Integer.parseInt(iv.getTag().toString()));
+        intent.putExtra("table", "urlsTable");
         startActivity(intent);
     }
     public static class DBHelperFav extends SQLiteOpenHelper {

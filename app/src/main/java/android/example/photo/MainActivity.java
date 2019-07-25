@@ -12,6 +12,7 @@ import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
 import android.os.Bundle;
 import android.os.Handler;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        }, 3000);
+        }, 3500);
     }
     private String getRandomPhotoUrl(){
         Retrofit retrofit = new Retrofit.Builder()
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!response.isSuccessful()) {
                     System.out.println("!!! I am error");
                     System.out.println("Code: " + response.code());
+                    Toast.makeText(getApplicationContext(), "Error code: " +  response.code(), Toast.LENGTH_SHORT);
                     return;
                 }
                 for(int i = 0; i < 50; i++){
@@ -65,8 +67,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Post>> call, Throwable t) {
-                System.out.println("!!! I am onFailure");
-                System.out.println(t.getMessage());
+                //System.out.println("!!! I am onFailure");
+                //System.out.println(t.getMessage());
+                Toast.makeText(getApplicationContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
         System.out.println("!!! I am onResponse" + call.request().body());
