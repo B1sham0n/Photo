@@ -30,7 +30,7 @@ public class FullscreenPictureActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen_picture);
 
         TextView tv = findViewById(R.id.username);
-        ApplicationActivity.DBHelper dbHelper = new ApplicationActivity.DBHelper(getApplicationContext());
+        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor c = db.query("urlsTable", null, null, null,
                 null, null, null);

@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.example.photo.ApplicationActivity;
 import android.example.photo.FullscreenPictureActivity;
+import android.example.photo.MainActivity;
 import android.example.photo.R;
 import android.graphics.Point;
 import android.os.Build;
@@ -34,7 +35,7 @@ import com.squareup.picasso.Picasso;
 
 public class PhotosFragment extends Fragment {
 
-    ApplicationActivity.DBHelper dbHelper;
+    MainActivity.DBHelper dbHelper;
     SQLiteDatabase db;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,7 +49,7 @@ public class PhotosFragment extends Fragment {
 
         //deleteDB();
         LinearLayout scrollLayout = view.findViewById(R.id.container_photo);
-        dbHelper = new ApplicationActivity.DBHelper(getContext());
+        dbHelper = new MainActivity.DBHelper(getContext());
         dbHelper.setNameTable("urlsTable");
         db = dbHelper.getWritableDatabase();
         Cursor c = db.query("urlsTable", null, null, null,
