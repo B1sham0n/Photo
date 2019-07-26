@@ -1,5 +1,6 @@
 package android.example.photo.Fragments;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.example.photo.MainActivity;
 import android.example.photo.R;
 import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
+import android.example.photo.Util;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,20 +52,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class PhotosFragment extends Fragment {
     //TODO: ставишь лайк в фуллактивит - не отображается в фотоактивити до перезагрузки
-    MainActivity.DBHelper dbHelper;
-    SQLiteDatabase db;
-    SwipeRefreshLayout swipePhotos;
+    private Util.DBHelper dbHelper;
+    private SQLiteDatabase db;
+    private SwipeRefreshLayout swipePhotos;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         System.out.println("created");
         return inflater.inflate(R.layout.photo, null);
 
     }
-    Integer currentSavedInstanceState = 2;
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        currentSavedInstanceState = 3;
         if(savedInstanceState != null){
             System.out.println("recreate");
             getFragmentManager()
@@ -82,7 +82,7 @@ public class PhotosFragment extends Fragment {
         swipePhotos.setColorSchemeResources(R.color.colorPrimary, R.color.colorLikeLight, R.color.colorLikeDark);
         swipePhotos.setRefreshing(false);
 
-        dbHelper = new MainActivity.DBHelper(getContext());
+        dbHelper = new Util.DBHelper(getContext());
         dbHelper.setNameTable("urlsTable");
         db = dbHelper.getWritableDatabase();
         Cursor c = db.query("urlsTable", null, null, null,
@@ -113,7 +113,7 @@ public class PhotosFragment extends Fragment {
                     btn.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_favorite));
                     btn.setTag(c.getInt(c.getColumnIndex("id")));
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        if(compareWithFavorites(c.getString(c.getColumnIndex("photo_id"))))
+                        if(Util.compareWithFavorites(c.getString(c.getColumnIndex("photo_id")), getActivity()))
                             btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeDark));
                         else
                             btn.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight));
@@ -128,7 +128,6 @@ public class PhotosFragment extends Fragment {
     SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
         @Override
         public void onRefresh() {
-            deleteDB();
             swipePhotos.setRefreshing(true);
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl("https://api.unsplash.com/")
@@ -140,23 +139,18 @@ public class PhotosFragment extends Fragment {
                 @Override
                 public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
                     if (!response.isSuccessful()) {
-                        System.out.println("!!! I am error");
-                        System.out.println("Code: " + response.code());
-                        Toast.makeText(getActivity(), "Error code: " +  response.code(), Toast.LENGTH_SHORT);
+                        Toast.makeText(getActivity(), "Error code: " +  response.code(), Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    Util.deleteDB("urlsTable", getActivity());
                     for(int i = 0; i < 50; i++){
-                        //System.out.println("Its" + response.body().get(i).getCreated_at());
-                        setUrlAndIdOnDB(response.body().get(i).getUrls().getRegular(), response.body().get(i).getId(), response.body().get(i).getCreated_at());
+                        Util.setUrlAndIdOnDB(response.body().get(i).getUrls().getRegular(), response.body().get(i).getId(), response.body().get(i).getCreated_at(), getActivity());
                     }
-                    //setUrlOnDB(response.body().getUrls().getFull());
                 }
-
+                @SuppressLint("ShowToast")
                 @Override
                 public void onFailure(Call<List<Post>> call, Throwable t) {
-                    //System.out.println("!!! I am onFailure");
-                    //System.out.println(t.getMessage());
-                    Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT);
+                    Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
             //нужна задержка для обновления БД
@@ -169,11 +163,11 @@ public class PhotosFragment extends Fragment {
                             .attach(PhotosFragment.this)
                             .commit();
                 }
-            }, 1000);
+            }, 2000);
 
         }
     };
-    View.OnClickListener btnLikeListener = new View.OnClickListener() {
+    private View.OnClickListener btnLikeListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             ColorStateList colorStateList = null;
@@ -182,7 +176,7 @@ public class PhotosFragment extends Fragment {
                 if (colorStateList == ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight)) {
                     view.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeDark));
                     view.setEnabled(false);
-                    DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
+                    Util.DBHelperFav dbHelperFav = new Util.DBHelperFav(getActivity());
                     dbHelperFav.setNameTable("favoritesTable");
                     ContentValues cv = new ContentValues();
                     SQLiteDatabase db2 = dbHelperFav.getWritableDatabase();
@@ -191,16 +185,13 @@ public class PhotosFragment extends Fragment {
                     id -= 1;
                     System.out.println("id = " + id);
                     Integer i = 0;
-                    String url = "https://images.unsplash.com/photo-1556228453-6ecff5553887?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max&ixid=eyJhcHBfaWQiOjgyODgzfQ",
-                            photo_id = "nophotoid",
-                            created = "22-02-2019";
-
+                    String url = null, photo_id = null, created = null;
                     db = dbHelper.getWritableDatabase();
                     Cursor c = db.query("urlsTable", null, null, null,
                             null, null, null);
                     if (c.moveToFirst()) {
                         do {
-                            if (i == id) {
+                            if (i.equals(id)) {
                                 url = c.getString(c.getColumnIndex("url"));
                                 photo_id = c.getString(c.getColumnIndex("photo_id"));
                                 created = c.getString(c.getColumnIndex("created"));
@@ -218,76 +209,19 @@ public class PhotosFragment extends Fragment {
         }
     };
 
-    View.OnLongClickListener onClickPicture = new View.OnLongClickListener() {
+    private View.OnLongClickListener onClickPicture = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View view) {
             loadIntent((ImageView) view);
             return false;
         }
     };
-    private Boolean compareWithFavorites(String photo_id){
-        DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
-        SQLiteDatabase db = dbHelperFav.getWritableDatabase();
-        Cursor c = db.query("favoritesTable", null, null, null,
-                null, null, null);
-        if(c.moveToFirst()){
-            do {
-                if(c.getString(c.getColumnIndex("photo_id")).equals(photo_id)){
-                    return true;
-                }
-            }while(c.moveToNext());
-        }
-        return false;
-    }
-    private void  setUrlAndIdOnDB(String url, String photo_id, String created){
-        //System.out.println("_______________________________________" + created);
-        ContentValues cv = new ContentValues();
-        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getActivity());
-        //SQLiteDatabase db = dbHelper.getWritableDatabase();
-        cv.put("url", url);
-        cv.put("photo_id", photo_id);
-        cv.put("created", created);
-        db.insert("urlsTable", null, cv);
-    }
-    private void deleteDB(){
-        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getActivity());
-        db = dbHelper.getWritableDatabase();
-        db.delete("urlsTable", null,null);
-        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'urlsTable'");
-    }
+
     private void loadIntent(ImageView iv) {
         Intent intent = new Intent(getActivity(), FullscreenPictureActivity.class);
         intent.putExtra("id", Integer.parseInt(iv.getTag().toString()));
         intent.putExtra("table", "urlsTable");
         startActivity(intent);
     }
-    public static class DBHelperFav extends SQLiteOpenHelper {
-        //вроде был private not static
-        String nameTable = "favoritesTable";
-        public void setNameTable(String nameTable) {
-            this.nameTable = nameTable;
-        }
 
-        public DBHelperFav(Context context) {
-            // конструктор суперкласса
-            super(context, "favDB", null, 1);
-        }
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            //Log.d(LOG_TAG, "--- onCreate database ---");
-            // создаем таблицу с полями
-            db.execSQL("create table favoritesTable ("
-                    + "id integer primary key autoincrement,"
-                    + "url text,"
-                    + "photo_id text,"
-                    + "created text" + ");");
-            System.out.println("Creating " + nameTable + "____________________");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-        }
-
-    }
 }

@@ -38,7 +38,7 @@ public class FullscreenPictureActivity extends AppCompatActivity {
         //TODO: compareWithFavorites можно вынести в отдельный класс Util
         String table = getIntent().getStringExtra("table");
 
-        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getApplicationContext());
+        Util.DBHelper dbHelper = new Util.DBHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor c = db.query("urlsTable", null, null, null,
                 null, null, null);
@@ -46,7 +46,7 @@ public class FullscreenPictureActivity extends AppCompatActivity {
         assert table != null;
         if(table.equals("favoritesTable")) {
             System.out.println(table + "+");
-            PhotosFragment.DBHelperFav dbHelperFav = new PhotosFragment.DBHelperFav(getApplicationContext());
+            Util.DBHelperFav dbHelperFav = new Util.DBHelperFav(getApplicationContext());
             db = dbHelperFav.getWritableDatabase();
             c = db.query("favoritesTable", null, null, null,
                     null, null, null);
@@ -127,8 +127,8 @@ public class FullscreenPictureActivity extends AppCompatActivity {
 
     private void addToDB(String photo_id) {
         ContentValues cv = new ContentValues();
-        PhotosFragment.DBHelperFav dbHelperFav = new PhotosFragment.DBHelperFav(getApplicationContext());
-        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getApplicationContext());
+        Util.DBHelperFav dbHelperFav = new Util.DBHelperFav(getApplicationContext());
+        Util.DBHelper dbHelper = new Util.DBHelper(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         SQLiteDatabase db2 = dbHelperFav.getWritableDatabase();
 
@@ -155,7 +155,7 @@ public class FullscreenPictureActivity extends AppCompatActivity {
     }
 
     private void deleteFromDB(String photo_id){
-        PhotosFragment.DBHelperFav dbHelper = new PhotosFragment.DBHelperFav(getApplicationContext());
+        Util.DBHelperFav dbHelper = new Util.DBHelperFav(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor c = db.query("favoritesTable", null, null, null,
                 null, null, null);
@@ -174,7 +174,7 @@ public class FullscreenPictureActivity extends AppCompatActivity {
         }
     }
     private Boolean compareWithFavorites(String photo_id){
-        PhotosFragment.DBHelperFav dbHelperFav = new PhotosFragment.DBHelperFav(getApplicationContext());
+        Util.DBHelperFav dbHelperFav = new Util.DBHelperFav(getApplicationContext());
         SQLiteDatabase db = dbHelperFav.getWritableDatabase();
         Cursor c = db.query("favoritesTable", null, null, null,
                 null, null, null);

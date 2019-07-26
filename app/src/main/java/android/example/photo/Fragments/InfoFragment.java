@@ -1,13 +1,21 @@
 package android.example.photo.Fragments;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.example.photo.R;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import java.util.Objects;
 
 public class InfoFragment extends Fragment {
     @Nullable
@@ -15,11 +23,19 @@ public class InfoFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.info, null);
     }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        //view.setLayoutParams(new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT));
-        //getActivity().getWindow().setFlags(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        final TextView tvInfoMail = view.findViewById(R.id.infoMail);
+        LinearLayout ll = view.findViewById(R.id.layoutWithMail);
+        ll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getContext().CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Copied mail", tvInfoMail.getText());
+                Objects.requireNonNull(clipboard).setPrimaryClip(clip);
+                Toast.makeText(getActivity(), "Copied mail", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

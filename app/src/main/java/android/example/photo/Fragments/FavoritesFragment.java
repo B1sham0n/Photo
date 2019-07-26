@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.example.photo.ApplicationActivity;
 import android.example.photo.FullscreenPictureActivity;
 import android.example.photo.R;
+import android.example.photo.Util;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -29,7 +30,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 public class FavoritesFragment extends Fragment {
-    PhotosFragment.DBHelperFav dbHelper;
+    Util.DBHelperFav dbHelper;
     LinearLayout scrollLayout;
     @Nullable
     @Override
@@ -41,7 +42,7 @@ public class FavoritesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         scrollLayout = view.findViewById(R.id.container_favorites);
-        dbHelper = new PhotosFragment.DBHelperFav(getContext());
+        dbHelper = new Util.DBHelperFav(getContext());
         dbHelper.setNameTable("favoritesTable");
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor c = db.query("favoritesTable", null, null, null,
@@ -61,7 +62,7 @@ public class FavoritesFragment extends Fragment {
                         .into(iv);
                 iv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                 iv.setOnLongClickListener(onClickPicture);
-                iv.setTag(c.getInt(c.getColumnIndex("id")));
+                iv.setTag(c.getInt(c.getColumnIndex("id"))-1);
                 iv.setAdjustViewBounds(true);
 
                 cl.addView(iv);
