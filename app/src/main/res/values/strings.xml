@@ -8,4 +8,7 @@
     <string name="title_activity_fullscreen_picture">FullscreenPictureActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="author">Разработчик: Валерия Ридченко</string>
+    <string name="mail">Контакты: valeriya.ridchenko@mail.ru</string>
+    <string name="libraries">Использованные библиотеки:   Retrofit, converter-gson, picasso</string>
 </resources>

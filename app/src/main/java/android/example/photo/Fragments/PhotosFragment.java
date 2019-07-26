@@ -35,19 +35,30 @@ import androidx.fragment.app.Fragment;
 import com.squareup.picasso.Picasso;
 
 public class PhotosFragment extends Fragment {
-
+    //TODO: ставишь лайк в фуллактивит - не отображается в фотоактивити до перезагрузки
     MainActivity.DBHelper dbHelper;
     SQLiteDatabase db;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        System.out.println("created");
         return inflater.inflate(R.layout.photo, null);
-    }
 
+    }
+    Integer currentSavedInstanceState = 2;
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        currentSavedInstanceState = 3;
+        if(savedInstanceState != null){
+            System.out.println("recreate");
+            getFragmentManager()
+                    .beginTransaction()
+                    .detach(PhotosFragment.this)
+                    .attach(PhotosFragment.this)
+                    .commit();
+        }
+        System.out.println("inViewCreated_______________________");
         //TODO: можно потом добавить номер картинки где-то (или при нажатии шобы появлялся, мона брать ид из бд)
-
         //deleteDB();
         LinearLayout scrollLayout = view.findViewById(R.id.container_photo);
         dbHelper = new MainActivity.DBHelper(getContext());
@@ -58,7 +69,6 @@ public class PhotosFragment extends Fragment {
         System.out.println("i am here111" + c.getCount());
             if (c.moveToFirst()) {
                 do {
-                    //TODO: use Picasso
                     ConstraintLayout cl = new ConstraintLayout(getActivity());
                     //cl.setLayoutParams(new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT,ConstraintLayout.LayoutParams.WRAP_CONTENT));
                     cl.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -138,6 +148,49 @@ public class PhotosFragment extends Fragment {
             }
         }
     };
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        System.out.println("ulala stop");
+        if(currentSavedInstanceState != 2 || currentSavedInstanceState != 1)
+            currentSavedInstanceState = 0;
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        System.out.println("resuuult");
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("RESULT");
+        System.out.println("detach");
+        getFragmentManager()
+                .beginTransaction()
+                .detach(PhotosFragment.this)
+                .attach(PhotosFragment.this)
+                .commit();
+        currentSavedInstanceState = 1;
+    }
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        System.out.println("dwqqwqc");
+        if (isVisibleToUser) {
+            // Refresh your fragment here
+            getFragmentManager().beginTransaction().detach(this).attach(this).commit();
+            System.out.println("IsRefresh" + " Yes");
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if(currentSavedInstanceState != 1){
+
+        }
+        //getActivity().recreate();
+    }
+
     View.OnLongClickListener onClickPicture = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View view) {
