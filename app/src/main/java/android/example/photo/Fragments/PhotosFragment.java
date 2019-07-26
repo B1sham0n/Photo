@@ -11,6 +11,7 @@ import android.example.photo.R;
 import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
 import android.example.photo.Utils.Util;
+import android.example.photo.Utils.varsUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -110,7 +111,7 @@ public class PhotosFragment extends Fragment {
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             JsonPlaceHolderApi jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
-            Call<List<Post>> call = jsonPlaceHolderApi.getPosts();
+            Call<List<Post>> call = jsonPlaceHolderApi.getPosts(varsUtil.getSecret_key(), varsUtil.getPer_page());
             call.enqueue(new Callback<List<Post>>() {
                 @Override
                 public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {

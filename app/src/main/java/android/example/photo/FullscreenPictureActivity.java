@@ -43,7 +43,7 @@ public class FullscreenPictureActivity extends AppCompatActivity {
                .addConverterFactory(GsonConverterFactory.create())
                .build();
         JsonPlaceHolderApi jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
-        Call<Post> call = jsonPlaceHolderApi.getPostOnId(photo_id);
+        Call<Post> call = jsonPlaceHolderApi.getPostOnId(photo_id, "7d770b5724deac228aadb9b9159ebe575c6c9db5dd3abb14a38b01a96e2523ac");
         call.enqueue(new Callback<Post>() {
             @Override
             public void onResponse(Call<Post> call, Response<Post> response) {

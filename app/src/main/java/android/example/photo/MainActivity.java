@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
 import android.example.photo.Utils.Util;
+import android.example.photo.Utils.varsUtil;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
@@ -41,13 +42,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 3500);
     }
-    private String getRandomPhotoUrl(){
+    private void getRandomPhotoUrl(){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.unsplash.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         JsonPlaceHolderApi jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
-        Call<List<Post>> call = jsonPlaceHolderApi.getPosts();
+        Call<List<Post>> call = jsonPlaceHolderApi.getPosts(varsUtil.getSecret_key(), varsUtil.getPer_page());
         call.enqueue(new Callback<List<Post>>() {
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
@@ -62,13 +63,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Post>> call, Throwable t) {
-                //System.out.println("!!! I am onFailure");
-                //System.out.println(t.getMessage());
                 Toast.makeText(getApplicationContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        System.out.println("!!! I am onResponse" + call.request().body());
-        return "";
     }
     private void  setUrlAndIdOnDB(String url, String photo_id, String created){
         //System.out.println("_______________________________________" + created);
