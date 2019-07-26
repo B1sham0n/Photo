@@ -1,14 +1,12 @@
 package android.example.photo.Fragments;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.example.photo.ApplicationActivity;
 import android.example.photo.FullscreenPictureActivity;
 import android.example.photo.R;
-import android.example.photo.Util;
+import android.example.photo.Utils.Util;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -27,8 +25,6 @@ import androidx.fragment.app.Fragment;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-
 public class FavoritesFragment extends Fragment {
     Util.DBHelperFav dbHelper;
     LinearLayout scrollLayout;
@@ -37,7 +33,7 @@ public class FavoritesFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.favorites, null);
     }
-    //TODO: deleteFromDB можно вынести в Utils
+    //TODO: deleteFromFavDB можно вынести в Utils
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -47,7 +43,6 @@ public class FavoritesFragment extends Fragment {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor c = db.query("favoritesTable", null, null, null,
                 null, null, null);
-        //System.out.println("i am here111" + c.getCount());
         if (c.moveToFirst()) {
             do {
                 ConstraintLayout cl = new ConstraintLayout(getActivity());
@@ -58,11 +53,11 @@ public class FavoritesFragment extends Fragment {
                 Picasso.get()
                         .load(url)
                         .placeholder(R.drawable.ic_photo)
-                        .error(R.drawable.splash_logo)
+                        .error(R.drawable.ic_failed)
                         .into(iv);
                 iv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                 iv.setOnLongClickListener(onClickPicture);
-                iv.setTag(c.getInt(c.getColumnIndex("id"))-1);
+                iv.setTag(c.getString(c.getColumnIndex("photo_id")));
                 iv.setAdjustViewBounds(true);
 
                 cl.addView(iv);
@@ -100,70 +95,15 @@ public class FavoritesFragment extends Fragment {
                     }
                     else{
                         view.setBackgroundTintList(ContextCompat.getColorStateList(getActivity(), R.color.colorLikeLight));
-                        deleteFromDB(view.getTag().toString());
+                        Util.deleteFromFavDB(view.getTag().toString(), scrollLayout, getActivity());
                     }
                 }
-
-                //TODO: добавлять фото в базу данных фейворит
-                //TODO: возможность убирать лайк (или сделать ее только в большом фото)
             }
         }
     };
-    private void deleteFromDB(String photo_id){
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        Cursor c = db.query("favoritesTable", null, null, null,
-                null, null, null);
-        Integer i = 0;
-        if(c.moveToFirst()){
-         do {
-             if(c.getString(c.getColumnIndex("photo_id")).equals(photo_id)){
-                 db.delete("favoritesTable","id = " + c.getInt(c.getColumnIndex("id")),null);
-                 db.execSQL("UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE NAME = 'favoritesTable'");//обновление столбца с id
-                 System.out.println("its id = " +  c.getInt(c.getColumnIndex("id")) + "!1111!!!!!!!!!!!!!!!");
-                 scrollLayout.removeViewAt(i);
-                 break;
-             }
-             i++;
-         }while (c.moveToNext());
-        }
-    }
-    public void deleteFromDB2(SQLiteDatabase db, Integer id){
-        ContentValues cv = new ContentValues();
-        ArrayList<String> arrName = new ArrayList<>();
-        ArrayList<String> arrSurname = new ArrayList<>();
-        ArrayList<Integer> arrAge = new ArrayList<>();
-
-        Cursor c = db.query("testTable", null,null, null,
-                null, null, null);
-        int j = 0;
-        if(c.moveToFirst()) {
-            do{
-                arrName.add(j, c.getString(c.getColumnIndex("name")));
-                arrSurname.add(j,  c.getString(c.getColumnIndex("surname")));
-                arrAge.add(j,  c.getInt(c.getColumnIndex("age")));
-                j++;
-            }while(c.moveToNext());
-        }
-        c.moveToFirst();
-        for(int i = id; i < j-1; i++){
-            arrName.set(i, arrName.get(i+1));
-            arrSurname.set(i, arrSurname.get(i+1));
-            arrAge.set(i, arrAge.get(i+1));
-        }
-        db.delete("testTable", null,null);
-        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'testTable'");
-        for(int i = 0; i < j-1; i++){
-            //cv.put("id", i);
-            cv.put("name", arrName.get(i));
-            cv.put("surname", arrSurname.get(i));
-            cv.put("age", arrAge.get(i));
-            db.insert("testTable", null, cv);
-        }
-        c.close();
-    }
     private void loadIntent(ImageView iv) {
         Intent intent = new Intent(getActivity(), FullscreenPictureActivity.class);
-        intent.putExtra("id", Integer.parseInt(iv.getTag().toString()));
+        intent.putExtra("photo_id", iv.getTag().toString());
         intent.putExtra("table", "favoritesTable");
         startActivity(intent);
     }

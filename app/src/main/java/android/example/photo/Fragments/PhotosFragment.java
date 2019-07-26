@@ -2,36 +2,27 @@ package android.example.photo.Fragments;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.example.photo.ApplicationActivity;
 import android.example.photo.FullscreenPictureActivity;
-import android.example.photo.MainActivity;
 import android.example.photo.R;
 import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
-import android.example.photo.Util;
-import android.graphics.Point;
+import android.example.photo.Utils.Util;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -42,7 +33,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -51,30 +41,17 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class PhotosFragment extends Fragment {
-    //TODO: ставишь лайк в фуллактивит - не отображается в фотоактивити до перезагрузки
     private Util.DBHelper dbHelper;
     private SQLiteDatabase db;
     private SwipeRefreshLayout swipePhotos;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        System.out.println("created");
         return inflater.inflate(R.layout.photo, null);
-
     }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(savedInstanceState != null){
-            System.out.println("recreate");
-            getFragmentManager()
-                    .beginTransaction()
-                    .detach(PhotosFragment.this)
-                    .attach(PhotosFragment.this)
-                    .commit();
-        }
-        System.out.println("inViewCreated_______________________");
-        //TODO: можно потом добавить номер картинки где-то (или при нажатии шобы появлялся, мона брать ид из бд)
-        //deleteDB();
+
         LinearLayout scrollLayout = view.findViewById(R.id.container_photo);
 
         swipePhotos = view.findViewById(R.id.swipePhotos);
@@ -88,7 +65,6 @@ public class PhotosFragment extends Fragment {
         Cursor c = db.query("urlsTable", null, null, null,
                null, null, null);
             if (c.moveToFirst()) {
-                System.out.println("i am here111" + c.getCount());
                 do {
                     ConstraintLayout cl = new ConstraintLayout(getActivity());
                     //cl.setLayoutParams(new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT,ConstraintLayout.LayoutParams.WRAP_CONTENT));
@@ -100,11 +76,11 @@ public class PhotosFragment extends Fragment {
                     Picasso.get()
                             .load(url)
                             .placeholder(R.drawable.ic_photo)
-                            .error(R.drawable.splash_logo)
+                            .error(R.drawable.ic_failed)
                             .into(iv);
                     iv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                     iv.setOnLongClickListener(onClickPicture);
-                    iv.setTag(c.getInt(c.getColumnIndex("id")));
+                    iv.setTag(c.getString(c.getColumnIndex("photo_id")));
                     iv.setAdjustViewBounds(true);
 
                     cl.addView(iv);
@@ -147,7 +123,6 @@ public class PhotosFragment extends Fragment {
                         Util.setUrlAndIdOnDB(response.body().get(i).getUrls().getRegular(), response.body().get(i).getId(), response.body().get(i).getCreated_at(), getActivity());
                     }
                 }
-                @SuppressLint("ShowToast")
                 @Override
                 public void onFailure(Call<List<Post>> call, Throwable t) {
                     Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
@@ -183,7 +158,6 @@ public class PhotosFragment extends Fragment {
 
                     Integer id = Integer.parseInt(view.getTag().toString());
                     id -= 1;
-                    System.out.println("id = " + id);
                     Integer i = 0;
                     String url = null, photo_id = null, created = null;
                     db = dbHelper.getWritableDatabase();
@@ -219,7 +193,7 @@ public class PhotosFragment extends Fragment {
 
     private void loadIntent(ImageView iv) {
         Intent intent = new Intent(getActivity(), FullscreenPictureActivity.class);
-        intent.putExtra("id", Integer.parseInt(iv.getTag().toString()));
+        intent.putExtra("photo_id", iv.getTag().toString());
         intent.putExtra("table", "urlsTable");
         startActivity(intent);
     }

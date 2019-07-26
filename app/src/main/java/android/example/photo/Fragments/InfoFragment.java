@@ -26,13 +26,12 @@ public class InfoFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        final TextView tvInfoMail = view.findViewById(R.id.infoMail);
         LinearLayout ll = view.findViewById(R.id.layoutWithMail);
         ll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getContext().CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Copied mail", tvInfoMail.getText());
+                ClipData clip = ClipData.newPlainText("Copied mail", getString(R.string.mail));
                 Objects.requireNonNull(clipboard).setPrimaryClip(clip);
                 Toast.makeText(getActivity(), "Copied mail", Toast.LENGTH_SHORT).show();
             }

@@ -3,13 +3,12 @@ package android.example.photo;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.example.photo.Retrofit.JsonPlaceHolderApi;
 import android.example.photo.Retrofit.Post;
+import android.example.photo.Utils.Util;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
