@@ -11,9 +11,12 @@ import android.example.photo.ApplicationActivity;
 import android.example.photo.FullscreenPictureActivity;
 import android.example.photo.MainActivity;
 import android.example.photo.R;
+import android.example.photo.Retrofit.JsonPlaceHolderApi;
+import android.example.photo.Retrofit.Post;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -24,6 +27,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
@@ -31,13 +35,24 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class PhotosFragment extends Fragment {
     //TODO: ставишь лайк в фуллактивит - не отображается в фотоактивити до перезагрузки
     MainActivity.DBHelper dbHelper;
     SQLiteDatabase db;
+    SwipeRefreshLayout swipePhotos;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         System.out.println("created");
@@ -61,13 +76,19 @@ public class PhotosFragment extends Fragment {
         //TODO: можно потом добавить номер картинки где-то (или при нажатии шобы появлялся, мона брать ид из бд)
         //deleteDB();
         LinearLayout scrollLayout = view.findViewById(R.id.container_photo);
+
+        swipePhotos = view.findViewById(R.id.swipePhotos);
+        swipePhotos.setOnRefreshListener(refreshListener);
+        swipePhotos.setColorSchemeResources(R.color.colorPrimary, R.color.colorLikeLight, R.color.colorLikeDark);
+        swipePhotos.setRefreshing(false);
+
         dbHelper = new MainActivity.DBHelper(getContext());
         dbHelper.setNameTable("urlsTable");
         db = dbHelper.getWritableDatabase();
         Cursor c = db.query("urlsTable", null, null, null,
                null, null, null);
-        System.out.println("i am here111" + c.getCount());
             if (c.moveToFirst()) {
+                System.out.println("i am here111" + c.getCount());
                 do {
                     ConstraintLayout cl = new ConstraintLayout(getActivity());
                     //cl.setLayoutParams(new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT,ConstraintLayout.LayoutParams.WRAP_CONTENT));
@@ -104,6 +125,54 @@ public class PhotosFragment extends Fragment {
                 } while (c.moveToNext());
         }
     }
+    SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        @Override
+        public void onRefresh() {
+            deleteDB();
+            swipePhotos.setRefreshing(true);
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://api.unsplash.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            JsonPlaceHolderApi jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
+            Call<List<Post>> call = jsonPlaceHolderApi.getPosts();
+            call.enqueue(new Callback<List<Post>>() {
+                @Override
+                public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+                    if (!response.isSuccessful()) {
+                        System.out.println("!!! I am error");
+                        System.out.println("Code: " + response.code());
+                        Toast.makeText(getActivity(), "Error code: " +  response.code(), Toast.LENGTH_SHORT);
+                        return;
+                    }
+                    for(int i = 0; i < 50; i++){
+                        //System.out.println("Its" + response.body().get(i).getCreated_at());
+                        setUrlAndIdOnDB(response.body().get(i).getUrls().getRegular(), response.body().get(i).getId(), response.body().get(i).getCreated_at());
+                    }
+                    //setUrlOnDB(response.body().getUrls().getFull());
+                }
+
+                @Override
+                public void onFailure(Call<List<Post>> call, Throwable t) {
+                    //System.out.println("!!! I am onFailure");
+                    //System.out.println(t.getMessage());
+                    Toast.makeText(getActivity(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT);
+                }
+            });
+            //нужна задержка для обновления БД
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    getFragmentManager()
+                            .beginTransaction()
+                            .detach(PhotosFragment.this)
+                            .attach(PhotosFragment.this)
+                            .commit();
+                }
+            }, 1000);
+
+        }
+    };
     View.OnClickListener btnLikeListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -149,48 +218,6 @@ public class PhotosFragment extends Fragment {
         }
     };
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        System.out.println("ulala stop");
-        if(currentSavedInstanceState != 2 || currentSavedInstanceState != 1)
-            currentSavedInstanceState = 0;
-
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        System.out.println("resuuult");
-        super.onActivityResult(requestCode, resultCode, data);
-        System.out.println("RESULT");
-        System.out.println("detach");
-        getFragmentManager()
-                .beginTransaction()
-                .detach(PhotosFragment.this)
-                .attach(PhotosFragment.this)
-                .commit();
-        currentSavedInstanceState = 1;
-    }
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        System.out.println("dwqqwqc");
-        if (isVisibleToUser) {
-            // Refresh your fragment here
-            getFragmentManager().beginTransaction().detach(this).attach(this).commit();
-            System.out.println("IsRefresh" + " Yes");
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if(currentSavedInstanceState != 1){
-
-        }
-        //getActivity().recreate();
-    }
-
     View.OnLongClickListener onClickPicture = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View view) {
@@ -212,11 +239,21 @@ public class PhotosFragment extends Fragment {
         }
         return false;
     }
+    private void  setUrlAndIdOnDB(String url, String photo_id, String created){
+        //System.out.println("_______________________________________" + created);
+        ContentValues cv = new ContentValues();
+        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getActivity());
+        //SQLiteDatabase db = dbHelper.getWritableDatabase();
+        cv.put("url", url);
+        cv.put("photo_id", photo_id);
+        cv.put("created", created);
+        db.insert("urlsTable", null, cv);
+    }
     private void deleteDB(){
-        DBHelperFav dbHelperFav = new DBHelperFav(getActivity());
-        db = dbHelperFav.getWritableDatabase();
-        db.delete("favoritesTable", null,null);
-        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'favoritesTable'");
+        MainActivity.DBHelper dbHelper = new MainActivity.DBHelper(getActivity());
+        db = dbHelper.getWritableDatabase();
+        db.delete("urlsTable", null,null);
+        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'urlsTable'");
     }
     private void loadIntent(ImageView iv) {
         Intent intent = new Intent(getActivity(), FullscreenPictureActivity.class);

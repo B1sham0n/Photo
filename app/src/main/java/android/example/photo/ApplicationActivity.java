@@ -43,9 +43,7 @@ public class ApplicationActivity extends AppCompatActivity {
     Fragment currentFragment = new PhotosFragment();
     private boolean loadFragment(Fragment fragment){
         if(fragment != null){
-            
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commit();
-
             return true;
         }
         return false;
